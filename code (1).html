@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Demo ERP System for Cypress Testing</title>
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f9;
+    color: #333;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  /* Sidebar */
+  #sidebar {
+    background: #34495e;
+    color: #ecf0f1;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+    user-select: none;
+  }
+  #sidebar h2 {
+    text-align: center;
+    font-weight: 700;
+    font-size: 24px;
+    padding: 20px 10px;
+    border-bottom: 1px solid #2c3e50;
+  }
+  #sidebar nav {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+  #sidebar nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #sidebar nav ul li {
+    border-bottom: 1px solid #2c3e50;
+  }
+  #sidebar nav ul li button {
+    background: none;
+    border: none;
+    color: inherit;
+    width: 100%;
+    text-align: left;
+    padding: 15px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+  #sidebar nav ul li button:hover,
+  #sidebar nav ul li button.active {
+    background-color: #3d566e;
+  }
+
+  /* Topbar */
+  #topbar {
+    background: #ffffff;
+    height: 60px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  #topbar .logo {
+    font-weight: 700;
+    font-size: 20px;
+    color: #34495e;
+  }
+  #topbar .profile {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+  #topbar .profile img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  #topbar .profile span {
+    font-weight: 600;
+    color: #34495e;
+  }
+  #topbar .notifications {
+    position: relative;
+    cursor: pointer;
+    font-size: 18px;
+    color: #34495e;
+  }
+  #topbar .notifications::after {
+    content: '3';
+    position: absolute;
+    background: #e74c3c;
+    color: white;
+    font-size: 12px;
+    padding: 2px 6px;
+    border-radius: 12px;
+    top: -6px;
+    right: -8px;
+    font-weight: bold;
+  }
+
+  /* Main content */
+  #content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  #content > section {
+    display: none;
+    padding: 20px 30px 40px;
+  }
+  #content > section.active {
+    display: block;
+  }
+  h1, h2 {
+    margin-top: 0;
+    color: #2c3e50;
+  }
+  .button-primary {
+    background: #2980b9;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background-color 0.25s ease;
+  }
+  .button-primary:hover {
+    background: #2471a3;
+  }
+  input, select, textarea {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    width: 100%;
+    margin-top: 5px;
+  }
+  label {
+    font-weight: 600;
+  }
+  form {
+    max-width: 600px;
+    margin-top: 15px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 15px;
+  }
+  table thead {
+    background: #2980b9;
+    color: white;
+  }
+  table th, table td {
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  table tbody tr:hover {
+    background: #ecf0f1;
+  }
+  .flex-row {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  .flex-space-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Back button styling */
+  .back-btn {
+    background: #7f8c8d;
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+    align-self: flex-start;
+  }
+  .back-btn:hover {
+    background: #707c7d;
+  }
+
+  /* Scrollbar for sidebar and content */
+  #sidebar nav::-webkit-scrollbar,
+  #content::-webkit-scrollbar {
+    width: 6px;
+  }
+  #sidebar nav::-webkit-scrollbar-thumb,
+  #content::-webkit-scrollbar-thumb {
+    background-color: #34495e;
+    border-radius: 3px;
+  }
+  #sidebar nav::-webkit-scrollbar-track,
+  #content::-webkit-scrollbar-track {
+    background: #2c3e50;
+  }
+  /* Responsive */
+  @media(max-width: 900px) {
+    #sidebar {
+      width: 60px;
+    }
+    #sidebar h2 {
+      display: none;
+    }
+    #sidebar nav ul li button {
+      padding: 15px 15px;
+      font-size: 0;
+      position: relative;
+    }
+    #sidebar nav ul li button::before {
+      content: attr(data-icon);
+      font-size: 20px;
+      display: block;
+      text-align: center;
+      margin-bottom: 2px;
+    }
+  }
+</style>
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div id="sidebar">
+  <h2>Demo ERP</h2>
+  <nav>
+    <ul>
+      <li><button class="active" data-view="dashboard" data-icon="🏠">Dashboard</button></li>
+      <li><button data-view="employees" data-icon="👥">Employees</button></li>
+      <li><button data-view="inventory" data-icon="📦">Inventory</button></li>
+      <li><button data-view="sales" data-icon="💰">Sales Orders</button></li>
+      <li><button data-view="purchase" data-icon="🛒">Purchase Orders</button></li>
+      <li><button data-view="reports" data-icon="📊">Reports</button></li>
+      <li><button data-view="profile" data-icon="🧑">Profile</button></li>
+      <li><button data-view="notifications" data-icon="🔔">Notifications</button></li>
+      <li><button data-view="search" data-icon="🔍">Search</button></li>
+      <li><button data-view="settings" data-icon="⚙️">Settings</button></li>
+    </ul>
+  </nav>
+</div>
+<div id="main">
+  <div id="topbar">
+    <div class="logo">Demo ERP System</div>
+    <div class="profile">
+      <div class="notifications" title="Notifications" id="topbar-notifications">🔔</div>
+      <img src="https://i.pravatar.cc/36" alt="User Avatar" />
+      <span>John Doe</span>
+    </div>
+  </div>
+  <div id="content">
+    <!-- Dashboard -->
+    <section id="dashboard" class="active" aria-label="Dashboard">
+      <h1>Dashboard Overview</h1>
+      <div style="display:flex; flex-wrap: wrap; gap:20px;">
+        <div style="background:#2980b9; color:white; padding:20px; border-radius:6px; flex:1 1 180px; min-width: 180px; box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+          <h2>Employees</h2>
+          <p style="font-size: 26px; font-weight:bold;" id="dashboard-emp-count">12</p>
+        </div>
+        <div style="background:#27ae60; color:white; padding:20px; border-radius:6px; flex:1 1 180px; min-width: 180px; box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+          <h2>Products</h2>
+          <p style="font-size: 26px; font-weight:bold;" id="dashboard-prod-count">34</p>
+        </div>
+        <div style="background:#c0392b; color:white; padding:20px; border-radius:6px; flex:1 1 180px; min-width: 180px; box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+          <h2>Sales Orders</h2>
+          <p style="font-size: 26px; font-weight:bold;" id="dashboard-sales-count">8</p>
+        </div>
+        <div style="background:#8e44ad; color:white; padding:20px; border-radius:6px; flex:1 1 180px; min-width: 180px; box-shadow:0 2px 5px rgba(0,0,0,0.15);">
+          <h2>Purchase Orders</h2>
+          <p style="font-size: 26px; font-weight:bold;" id="dashboard-purchase-count">3</p>
+        </div>
+      </div>
+      <!-- Additional features -->
+      <div style="margin-top: 30px; display: flex; flex-wrap: wrap; gap: 25px;">
+        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); flex: 1 1 300px; min-width: 280px;">
+          <h2>Recent Notifications</h2>
+          <ul style="list-style:none; padding-left:0; max-height: 130px; overflow-y: auto;">
+            <li style="padding: 8px; border-bottom: 1px solid #eee;">New sales order #1007 has been created.</li>
+            <li style="padding: 8px; border-bottom: 1px solid #eee;">Inventory for product "USB Keyboard" is low.</li>
+            <li style="padding: 8px; border-bottom: 1px solid #eee;">Employee "Alice Smith" submitted a leave request.</li>
+            <li style="padding: 8px;">Monthly staff meeting scheduled - 15th June</li>
+          </ul>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); flex: 1 1 300px; min-width: 280px;">
+          <h2>Quick Sales Summary</h2>
+          <p><strong>Total Sales Today:</strong> $12,345.67</p>
+          <p><strong>Orders This Week:</strong> 24</p>
+          <p><strong>Pending Orders:</strong> 5</p>
+        </div>
+        <div style="background: white; padding: 15px; border-radius: 8px; box-shadow:0 2px 5px rgba(0,0,0,0.1); flex: 1 1 300px; min-width: 280px;">
+          <h2>System Alerts</h2>
+          <ul style="list-style:none; padding-left:0; max-height: 130px; overflow-y: auto; color: #c0392b;">
+            <li style="padding: 8px; border-bottom: 1px solid #eee;">Low stock alert on 3 products</li>
+            <li style="padding: 8px; border-bottom: 1px solid #eee;">Pending purchase order #2001 overdue</li>
+            <li style="padding: 8px;">Backup successful at 02:00 AM</li>
+          </ul>
+        </div>
+      </div>
+      <!-- Charts -->
+      <div style="display:flex; flex-wrap: wrap; gap: 30px; margin-top: 30px;">
+        <div style="flex: 1 1 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+          <h2>Sales Orders Status</h2>
+          <canvas id="dashChartSalesStatus" width="300" height="200" aria-label="Pie chart showing sales orders status distribution" role="img"></canvas>
+        </div>
+        <div style="flex: 1 1 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+          <h2>Inventory Stock Levels (Top 8)</h2>
+          <canvas id="dashChartInventoryStock" width="300" height="200" aria-label="Bar chart showing inventory stock levels" role="img"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Employees -->
+    <section id="employees" aria-label="Employees">
+      <button class="back-btn" id="back-btn-employees" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Employee Management</h1>
+      <button class="button-primary" id="btn-add-employee">Add Employee</button>
+      <table id="table-employees" aria-describedby="employees">
+        <thead>
+          <tr><th>Name</th><th>Role</th><th>Email</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="form-employee-modal" style="display:none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); justify-content:center; align-items:center;">
+        <form id="form-employee" style="background:white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
+          <h2 id="form-employee-title">Add Employee</h2>
+          <label for="emp-name">Name</label>
+          <input type="text" id="emp-name" required />
+          <label for="emp-role">Role</label>
+          <input type="text" id="emp-role" required />
+          <label for="emp-email">Email</label>
+          <input type="email" id="emp-email" required />
+          <div class="flex-space-between" style="margin-top: 15px;">
+            <button type="submit" class="button-primary">Save</button>
+            <button type="button" id="form-employee-cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Inventory -->
+    <section id="inventory" aria-label="Inventory">
+      <button class="back-btn" id="back-btn-inventory" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Inventory Management</h1>
+      <button class="button-primary" id="btn-add-product">Add Product</button>
+      <table id="table-products" aria-describedby="inventory">
+        <thead>
+          <tr><th>Product Name</th><th>SKU</th><th>Quantity</th><th>Price</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="form-product-modal" style="display:none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); justify-content:center; align-items:center;">
+        <form id="form-product" style="background:white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;">
+          <h2 id="form-product-title">Add Product</h2>
+          <label for="prod-name">Product Name</label>
+          <input type="text" id="prod-name" required />
+          <label for="prod-sku">SKU</label>
+          <input type="text" id="prod-sku" required />
+          <label for="prod-qty">Quantity</label>
+          <input type="number" min="0" id="prod-qty" required />
+          <label for="prod-price">Price</label>
+          <input type="number" min="0" step="0.01" id="prod-price" required />
+          <div class="flex-space-between" style="margin-top: 15px;">
+            <button type="submit" class="button-primary">Save</button>
+            <button type="button" id="form-product-cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Sales Orders -->
+    <section id="sales" aria-label="Sales Orders">
+      <button class="back-btn" id="back-btn-sales" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Sales Orders</h1>
+      <button class="button-primary" id="btn-add-sale">Add Sales Order</button>
+      <table id="table-sales" aria-describedby="sales">
+        <thead>
+          <tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="form-sale-modal" style="display:none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); justify-content:center; align-items:center;">
+        <form id="form-sale" style="background:white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px;">
+          <h2 id="form-sale-title">Add Sales Order</h2>
+          <label for="sale-customer">Customer Name</label>
+          <input type="text" id="sale-customer" required />
+          <label for="sale-date">Date</label>
+          <input type="date" id="sale-date" required />
+          <label for="sale-total">Total Amount</label>
+          <input type="number" min="0" step="0.01" id="sale-total" required />
+          <label for="sale-status">Status</label>
+          <select id="sale-status" required>
+            <option value="Pending">Pending</option>
+            <option value="Completed" selected>Completed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+          <div class="flex-space-between" style="margin-top: 15px;">
+            <button type="submit" class="button-primary">Save</button>
+            <button type="button" id="form-sale-cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Purchase Orders -->
+    <section id="purchase" aria-label="Purchase Orders">
+      <button class="back-btn" id="back-btn-purchase" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Purchase Orders</h1>
+      <button class="button-primary" id="btn-add-purchase">Add Purchase Order</button>
+      <table id="table-purchase" aria-describedby="purchase">
+        <thead>
+          <tr><th>Order ID</th><th>Supplier</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="form-purchase-modal" style="display:none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); justify-content:center; align-items:center;">
+        <form id="form-purchase" style="background:white; padding: 20px; border-radius: 8px; width: 90%; max-width: 500px;">
+          <h2 id="form-purchase-title">Add Purchase Order</h2>
+          <label for="purchase-supplier">Supplier Name</label>
+          <input type="text" id="purchase-supplier" required />
+          <label for="purchase-date">Date</label>
+          <input type="date" id="purchase-date" required />
+          <label for="purchase-total">Total Amount</label>
+          <input type="number" min="0" step="0.01" id="purchase-total" required />
+          <label for="purchase-status">Status</label>
+          <select id="purchase-status" required>
+            <option value="Pending" selected>Pending</option>
+            <option value="Received">Received</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+          <div class="flex-space-between" style="margin-top: 15px;">
+            <button type="submit" class="button-primary">Save</button>
+            <button type="button" id="form-purchase-cancel">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Reports -->
+    <section id="reports" aria-label="Reports">
+      <button class="back-btn" id="back-btn-reports" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Reports</h1>
+      <div style="display:flex; flex-wrap: wrap; gap: 30px;">
+        <div style="flex: 1 1 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+          <h2>Employees Count by Role</h2>
+          <canvas id="chartEmployeesRole" width="300" height="200" aria-label="Bar chart showing employees count by role" role="img"></canvas>
+        </div>
+        <div style="flex: 1 1 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+          <h2>Sales Orders Status</h2>
+          <canvas id="chartSalesStatus" width="300" height="200" aria-label="Pie chart showing sales orders status distribution" role="img"></canvas>
+        </div>
+        <div style="flex: 1 1 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+          <h2>Inventory Stock Levels</h2>
+          <canvas id="chartInventoryStock" width="300" height="200" aria-label="Bar chart showing inventory stock levels" role="img"></canvas>
+        </div>
+        <div style="flex: 1 1 300px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+          <h2>Purchase Orders Status</h2>
+          <canvas id="chartPurchaseStatus" width="300" height="200" aria-label="Doughnut chart showing purchase orders status distribution" role="img"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile -->
+    <section id="profile" aria-label="Profile Settings">
+      <button class="back-btn" id="back-btn-profile" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>User Profile</h1>
+      <form id="profile-form" style="max-width: 400px;">
+        <label for="profile-name">Name</label>
+        <input type="text" id="profile-name" value="John Doe" />
+        <label for="profile-email">Email</label>
+        <input type="email" id="profile-email" value="john.doe@example.com" />
+        <label for="profile-role">Role</label>
+        <input type="text" id="profile-role" value="Administrator" readonly />
+        <button type="submit" class="button-primary" style="margin-top: 15px;">Save Changes</button>
+      </form>
+    </section>
+
+    <!-- Notifications -->
+    <section id="notifications" aria-label="Notifications">
+      <button class="back-btn" id="back-btn-notifications" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Notifications</h1>
+      <ul id="notification-list" style="list-style:none; padding:0;">
+        <li style="padding:10px; border-bottom:1px solid #ddd;">New sales order #1007 has been created.</li>
+        <li style="padding:10px; border-bottom:1px solid #ddd;">Inventory for product "USB Keyboard" is low.</li>
+        <li style="padding:10px; border-bottom:1px solid #ddd;">Employee "Alice Smith" submitted leave request.</li>
+      </ul>
+    </section>
+
+    <!-- Search -->
+    <section id="search" aria-label="Search">
+      <button class="back-btn" id="back-btn-search" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Search</h1>
+      <input type="text" id="search-box" placeholder="Search employees, products, orders..." aria-label="Search" />
+      <div id="search-results" style="margin-top: 20px;"></div>
+    </section>
+
+    <!-- Settings -->
+    <section id="settings" aria-label="Settings">
+      <button class="back-btn" id="back-btn-settings" type="button" aria-label="Back to previous page">← Back</button>
+      <h1>Settings</h1>
+      <form id="settings-form" style="max-width: 400px;">
+        <label for="setting-theme">Theme</label>
+        <select id="setting-theme">
+          <option value="light" selected>Light</option>
+          <option value="dark">Dark</option>
+        </select>
+        <label for="setting-notifications">Notifications</label>
+        <select id="setting-notifications">
+          <option value="enabled" selected>Enabled</option>
+          <option value="disabled">Disabled</option>
+        </select>
+        <button type="submit" class="button-primary" style="margin-top: 15px;">Save Settings</button>
+      </form>
+    </section>
+  </div>
+</div>
+
+<script>
+  // Track navigation history stack for back button functionality
+  const historyStack = [];
+
+  // Sidebar navigation functionality
+  const sidebarButtons = document.querySelectorAll('#sidebar nav ul li button');
+  const sections = document.querySelectorAll('#content > section');
+
+  let currentView = 'dashboard';
+
+  function showSection(view, addToHistory = true) {
+    if(view === currentView) return;
+    if(addToHistory) {
+      historyStack.push(currentView);
+    }
+    currentView = view;
+    sections.forEach(sec => {
+      if (sec.id === view) sec.classList.add('active');
+      else sec.classList.remove('active');
+    });
+    sidebarButtons.forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-view') === view);
+    });
+    // Clear search results when navigating to search
+    if(view === 'search') {
+      document.getElementById('search-box').value = '';
+      document.getElementById('search-results').innerHTML = '';
+    }
+    // Update charts if reports or dashboard section is shown
+    if(view === 'reports') {
+      createOrUpdateCharts();
+    }
+    if(view === 'dashboard') {
+      createOrUpdateDashboardCharts();
+    }
+  }
+
+  sidebarButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.getAttribute('data-view');
+      showSection(view);
+    });
+  });
+
+  // Back buttons handling
+  const backButtons = document.querySelectorAll('.back-btn');
+  backButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if(historyStack.length > 0) {
+        const prevView = historyStack.pop();
+        showSection(prevView, false);
+      } else {
+        // No history fallback to dashboard
+        showSection('dashboard', false);
+      }
+    });
+  });
+
+  // Mock data
+  let employees = [
+    {id: 1, name: "John Doe", role: "Administrator", email: "john.doe@example.com"},
+    {id: 2, name: "Alice Smith", role: "Sales Manager", email: "alice.smith@example.com"},
+    {id: 3, name: "Bob Johnson", role: "Inventory Manager", email: "bob.johnson@example.com"},
+    {id: 4, name: "Carol Lee", role: "Engineer", email: "carol.lee@example.com"},
+    {id: 5, name: "Dave Wilson", role: "HR", email: "dave.wilson@example.com"},
+    {id: 6, name: "Eve Thompson", role: "Accountant", email: "eve.thompson@example.com"},
+    {id: 7, name: "Franklin White", role: "Receptionist", email: "franklin.white@example.com"},
+    {id: 8, name: "Grace Black", role: "Marketing", email: "grace.black@example.com"},
+    {id: 9, name: "Hank Green", role: "Delivery", email: "hank.green@example.com"},
+    {id: 10, name: "Ivy Brown", role: "Support", email: "ivy.brown@example.com"},
+    {id: 11, name: "Jackie Blue", role: "Developer", email: "jackie.blue@example.com"},
+    {id: 12, name: "Kevin Red", role: "Sales Rep", email: "kevin.red@example.com"},
+  ];
+
+  let products = [
+    {id: 1, name: "USB Keyboard", sku: "KB-001", quantity: 23, price: 15.99},
+    {id: 2, name: "Gaming Mouse", sku: "MS-003", quantity: 11, price: 29.99},
+    {id: 3, name: "27' Monitor", sku: "MN-012", quantity: 7, price: 189.95},
+    {id: 4, name: "HD Webcam", sku: "WC-034", quantity: 5, price: 44.50},
+    {id: 5, name: "USB-C Hub", sku: "HB-018", quantity: 14, price: 25.00},
+    {id: 6, name: "Laptop Stand", sku: "ST-009", quantity: 19, price: 32.20},
+    {id: 7, name: "External HDD 2TB", sku: "HD-052", quantity: 9, price: 89.99},
+    {id: 8, name: "Bluetooth Speaker", sku: "SP-023", quantity: 16, price: 39.00},
+    {id: 9, name: "Graphic Tablet", sku: "GT-081", quantity: 4, price: 149.95},
+    {id: 10, name: "Wireless Charger", sku: "WC-067", quantity: 18, price: 19.99},
+    {id: 11, name: "Smartphone Stand", sku: "SS-045", quantity: 50, price: 12.45},
+    {id: 12, name: "Noise Cancelling Headphones", sku: "HP-107", quantity: 6, price: 110.00},
+    {id: 13, name: "Office Chair", sku: "CH-029", quantity: 3, price: 129.99},
+    {id: 14, name: "LED Desk Lamp", sku: "LM-019", quantity: 22, price: 24.99},
+    {id: 15, name: "Webcam Cover", sku: "WC-014", quantity: 100, price: 6.00},
+    {id: 16, name: "Ethernet Cable", sku: "EC-053", quantity: 35, price: 9.99},
+    {id: 17, name: "Laptop Backpack", sku: "BP-012", quantity: 14, price: 49.95},
+    {id: 18, name: "Wireless Mouse", sku: "WM-045", quantity: 25, price: 22.50},
+    {id: 19, name: "Portable SSD 500GB", sku: "SS-045", quantity: 12, price: 99.00},
+    {id: 20, name: "Tablet Case", sku: "TC-034", quantity: 10, price: 15.75},
+    {id: 21, name: "USB Flash Drive 128GB", sku: "FD-087", quantity: 40, price: 18.25},
+    {id: 22, name: "Surge Protector", sku: "SP-067", quantity: 21, price: 30.00},
+    {id: 23, name: "Wireless Keyboard", sku: "WK-024", quantity: 17, price: 35.00},
+    {id: 24, name: "Microphone", sku: "MC-012", quantity: 8, price: 45.00},
+    {id: 25, name: "3D Printer", sku: "3D-001", quantity: 2, price: 560.00},
+    {id: 26, name: "Router", sku: "RT-065", quantity: 9, price: 65.50},
+    {id: 27, name: "Projector", sku: "PJ-009", quantity: 5, price: 320.00},
+    {id: 28, name: "Smartwatch", sku: "SW-023", quantity: 15, price: 150.00},
+    {id: 29, name: "Fitness Tracker", sku: "FT-011", quantity: 18, price: 76.99},
+    {id: 30, name: "VR Headset", sku: "VR-012", quantity: 7, price: 299.99},
+    {id: 31, name: "Cable Organizer", sku: "CO-019", quantity: 45, price: 10.00},
+    {id: 32, name: "Smart Home Hub", sku: "SH-007", quantity: 8, price: 120.00},
+    {id: 33, name: "LED Strip Lights", sku: "LS-038", quantity: 20, price: 25.99},
+    {id: 34, name: "Tablet Stylus", sku: "TS-016", quantity: 13, price: 19.99},
+  ];
+
+  let salesOrders = [
+    {id: 1001, customer: "Acme Corp.", date: "2024-06-08", total: 1450.95, status: "Completed"},
+    {id: 1002, customer: "Beta LLC", date: "2024-06-07", total: 2300.00, status: "Pending"},
+    {id: 1003, customer: "Gamma Ltd.", date: "2024-06-05", total: 850.30, status: "Completed"},
+    {id: 1004, customer: "Delta Inc.", date: "2024-06-01", total: 420.78, status: "Cancelled"},
+    {id: 1005, customer: "Epsilon Co.", date: "2024-05-28", total: 1350.60, status: "Completed"},
+    {id: 1006, customer: "Zeta Enterprises", date: "2024-05-20", total: 999.99, status: "Completed"},
+    {id: 1007, customer: "Eta Group", date: "2024-06-09", total: 1200.50, status: "Pending"},
+    {id: 1008, customer: "Theta Partners", date: "2024-06-10", total: 875.00, status: "Completed"},
+  ];
+
+  let purchaseOrders = [
+    {id: 2001, supplier: "Supplier A", date: "2024-06-06", total: 2320.00, status: "Pending"},
+    {id: 2002, supplier: "Supplier B", date: "2024-05-30", total: 900.50, status: "Received"},
+    {id: 2003, supplier: "Supplier C", date: "2024-05-28", total: 1400.00, status: "Cancelled"},
+  ];
+
+  // Utility functions for rendering tables
+  function renderEmployees() {
+    const tbody = document.querySelector('#table-employees tbody');
+    tbody.innerHTML = '';
+    employees.forEach(emp => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${emp.name}</td><td>${emp.role}</td><td>${emp.email}</td>
+        <td>
+          <button class="btn-edit" data-id="${emp.id}">Edit</button>
+          <button class="btn-delete" data-id="${emp.id}">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderProducts() {
+    const tbody = document.querySelector('#table-products tbody');
+    tbody.innerHTML = '';
+    products.forEach(prod => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${prod.name}</td><td>${prod.sku}</td><td>${prod.quantity}</td>
+        <td>$${prod.price.toFixed(2)}</td>
+        <td>
+          <button class="btn-edit" data-id="${prod.id}">Edit</button>
+          <button class="btn-delete" data-id="${prod.id}">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderSales() {
+    const tbody = document.querySelector('#table-sales tbody');
+    tbody.innerHTML = '';
+    salesOrders.forEach(order => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${order.id}</td><td>${order.customer}</td><td>${order.date}</td><td>$${order.total.toFixed(2)}</td><td>${order.status}</td>
+        <td>
+          <button class="btn-edit" data-id="${order.id}">Edit</button>
+          <button class="btn-delete" data-id="${order.id}">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderPurchase() {
+    const tbody = document.querySelector('#table-purchase tbody');
+    tbody.innerHTML = '';
+    purchaseOrders.forEach(order => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${order.id}</td><td>${order.supplier}</td><td>${order.date}</td><td>$${order.total.toFixed(2)}</td><td>${order.status}</td>
+        <td>
+          <button class="btn-edit" data-id="${order.id}">Edit</button>
+          <button class="btn-delete" data-id="${order.id}">Delete</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Update dashboard counts
+  function updateDashboardCounts() {
+    document.getElementById('dashboard-emp-count').textContent = employees.length;
+    document.getElementById('dashboard-prod-count').textContent = products.length;
+    document.getElementById('dashboard-sales-count').textContent = salesOrders.length;
+    document.getElementById('dashboard-purchase-count').textContent = purchaseOrders.length;
+  }
+
+  // Employee modal logic
+  const empModal = document.getElementById('form-employee-modal');
+  const empForm = document.getElementById('form-employee');
+  let editingEmployeeId = null;
+
+  document.getElementById('btn-add-employee').addEventListener('click', () => {
+    editingEmployeeId = null;
+    empForm.reset();
+    document.getElementById('form-employee-title').textContent = 'Add Employee';
+    empModal.style.display = 'flex';
+  });
+  document.getElementById('form-employee-cancel').addEventListener('click', () => {
+    empModal.style.display = 'none';
+  });
+  empForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('emp-name').value.trim();
+    const role = document.getElementById('emp-role').value.trim();
+    const email = document.getElementById('emp-email').value.trim();
+    if (!name || !role || !email) return alert('Please fill all fields');
+    if(editingEmployeeId) {
+      const emp = employees.find(e => e.id === editingEmployeeId);
+      emp.name = name;
+      emp.role = role;
+      emp.email = email;
+    } else {
+      const newId = employees.length ? Math.max(...employees.map(e => e.id)) + 1 : 1;
+      employees.push({id: newId, name, role, email});
+    }
+    renderEmployees();
+    updateDashboardCounts();
+    empModal.style.display = 'none';
+    updateReportsCharts();
+    updateDashboardCharts();
+  });
+  // Employee edit/delete buttons
+  document.querySelector('#table-employees tbody').addEventListener('click', e => {
+    if(e.target.classList.contains('btn-edit')) {
+      editingEmployeeId = +e.target.getAttribute('data-id');
+      const emp = employees.find(emp => emp.id === editingEmployeeId);
+      document.getElementById('emp-name').value = emp.name;
+      document.getElementById('emp-role').value = emp.role;
+      document.getElementById('emp-email').value = emp.email;
+      document.getElementById('form-employee-title').textContent = 'Edit Employee';
+      empModal.style.display = 'flex';
+    } else if(e.target.classList.contains('btn-delete')) {
+      const id = +e.target.getAttribute('data-id');
+      if(confirm('Are you sure you want to delete this employee?')) {
+        employees = employees.filter(emp => emp.id !== id);
+        renderEmployees();
+        updateDashboardCounts();
+        updateReportsCharts();
+        updateDashboardCharts();
+      }
+    }
+  });
+
+  // Product modal logic
+  const prodModal = document.getElementById('form-product-modal');
+  const prodForm = document.getElementById('form-product');
+  let editingProductId = null;
+
+  document.getElementById('btn-add-product').addEventListener('click', () => {
+    editingProductId = null;
+    prodForm.reset();
+    document.getElementById('form-product-title').textContent = 'Add Product';
+    prodModal.style.display = 'flex';
+  });
+  document.getElementById('form-product-cancel').addEventListener('click', () => {
+    prodModal.style.display = 'none';
+  });
+  prodForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('prod-name').value.trim();
+    const sku = document.getElementById('prod-sku').value.trim();
+    const qty = +document.getElementById('prod-qty').value;
+    const price = +document.getElementById('prod-price').value;
+    if (!name || !sku || isNaN(qty) || isNaN(price)) return alert('Please fill all fields');
+    if (qty < 0 || price < 0) return alert('Quantity and price must be non-negative');
+    if(editingProductId) {
+      const prod = products.find(p => p.id === editingProductId);
+      prod.name = name;
+      prod.sku = sku;
+      prod.quantity = qty;
+      prod.price = price;
+    } else {
+      const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+      products.push({id: newId, name, sku, quantity: qty, price});
+    }
+    renderProducts();
+    updateDashboardCounts();
+    prodModal.style.display = 'none';
+    updateReportsCharts();
+    updateDashboardCharts();
+  });
+  // Product edit/delete buttons
+  document.querySelector('#table-products tbody').addEventListener('click', e => {
+    if(e.target.classList.contains('btn-edit')) {
+      editingProductId = +e.target.getAttribute('data-id');
+      const prod = products.find(p => p.id === editingProductId);
+      document.getElementById('prod-name').value = prod.name;
+      document.getElementById('prod-sku').value = prod.sku;
+      document.getElementById('prod-qty').value = prod.quantity;
+      document.getElementById('prod-price').value = prod.price;
+      document.getElementById('form-product-title').textContent = 'Edit Product';
+      prodModal.style.display = 'flex';
+    } else if(e.target.classList.contains('btn-delete')) {
+      const id = +e.target.getAttribute('data-id');
+      if(confirm('Are you sure you want to delete this product?')) {
+        products = products.filter(p => p.id !== id);
+        renderProducts();
+        updateDashboardCounts();
+        updateReportsCharts();
+        updateDashboardCharts();
+      }
+    }
+  });
+
+  // Sales orders modal logic
+  const salesModal = document.getElementById('form-sale-modal');
+  const salesForm = document.getElementById('form-sale');
+  let editingSalesId = null;
+
+  document.getElementById('btn-add-sale').addEventListener('click', () => {
+    editingSalesId = null;
+    salesForm.reset();
+    document.getElementById('form-sale-title').textContent = 'Add Sales Order';
+    salesModal.style.display = 'flex';
+  });
+  document.getElementById('form-sale-cancel').addEventListener('click', () => {
+    salesModal.style.display = 'none';
+  });
+  salesForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const customer = document.getElementById('sale-customer').value.trim();
+    const date = document.getElementById('sale-date').value;
+    const total = +document.getElementById('sale-total').value;
+    const status = document.getElementById('sale-status').value;
+    if(!customer || !date || isNaN(total) || !status) return alert('Please fill all fields');
+    if(total < 0) return alert('Total must be non-negative');
+    if(editingSalesId) {
+      const order = salesOrders.find(o => o.id === editingSalesId);
+      order.customer = customer;
+      order.date = date;
+      order.total = total;
+      order.status = status;
+    } else {
+      const newId = salesOrders.length ? Math.max(...salesOrders.map(o => o.id)) + 1 : 1001;
+      salesOrders.push({id: newId, customer, date, total, status});
+    }
+    renderSales();
+    updateDashboardCounts();
+    salesModal.style.display = 'none';
+    updateReportsCharts();
+    updateDashboardCharts();
+  });
+  // Sales edit/delete buttons
+  document.querySelector('#table-sales tbody').addEventListener('click', e => {
+    if(e.target.classList.contains('btn-edit')) {
+      editingSalesId = +e.target.getAttribute('data-id');
+      const order = salesOrders.find(o => o.id === editingSalesId);
+      document.getElementById('sale-customer').value = order.customer;
+      document.getElementById('sale-date').value = order.date;
+      document.getElementById('sale-total').value = order.total;
+      document.getElementById('sale-status').value = order.status;
+      document.getElementById('form-sale-title').textContent = 'Edit Sales Order';
+      salesModal.style.display = 'flex';
+    } else if(e.target.classList.contains('btn-delete')) {
+      const id = +e.target.getAttribute('data-id');
+      if(confirm('Are you sure you want to delete this sales order?')) {
+        salesOrders = salesOrders.filter(o => o.id !== id);
+        renderSales();
+        updateDashboardCounts();
+        updateReportsCharts();
+        updateDashboardCharts();
+      }
+    }
+  });
+
+  // Purchase orders modal logic
+  const purchaseModal = document.getElementById('form-purchase-modal');
+  const purchaseForm = document.getElementById('form-purchase');
+  let editingPurchaseId = null;
+
+  document.getElementById('btn-add-purchase').addEventListener('click', () => {
+    editingPurchaseId = null;
+    purchaseForm.reset();
+    document.getElementById('form-purchase-title').textContent = 'Add Purchase Order';
+    purchaseModal.style.display = 'flex';
+  });
+  document.getElementById('form-purchase-cancel').addEventListener('click', () => {
+    purchaseModal.style.display = 'none';
+  });
+  purchaseForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const supplier = document.getElementById('purchase-supplier').value.trim();
+    const date = document.getElementById('purchase-date').value;
+    const total = +document.getElementById('purchase-total').value;
+    const status = document.getElementById('purchase-status').value;
+    if(!supplier || !date || isNaN(total) || !status) return alert('Please fill all fields');
+    if(total < 0) return alert('Total must be non-negative');
+    if(editingPurchaseId) {
+      const order = purchaseOrders.find(o => o.id === editingPurchaseId);
+      order.supplier = supplier;
+      order.date = date;
+      order.total = total;
+      order.status = status;
+    } else {
+      const newId = purchaseOrders.length ? Math.max(...purchaseOrders.map(o => o.id)) + 1 : 2001;
+      purchaseOrders.push({id: newId, supplier, date, total, status});
+    }
+    renderPurchase();
+    updateDashboardCounts();
+    purchaseModal.style.display = 'none';
+    updateReportsCharts();
+    updateDashboardCharts();
+  });
+  // Purchase edit/delete buttons
+  document.querySelector('#table-purchase tbody').addEventListener('click', e => {
+    if(e.target.classList.contains('btn-edit')) {
+      editingPurchaseId = +e.target.getAttribute('data-id');
+      const order = purchaseOrders.find(o => o.id === editingPurchaseId);
+      document.getElementById('purchase-supplier').value = order.supplier;
+      document.getElementById('purchase-date').value = order.date;
+      document.getElementById('purchase-total').value = order.total;
+      document.getElementById('purchase-status').value = order.status;
+      document.getElementById('form-purchase-title').textContent = 'Edit Purchase Order';
+      purchaseModal.style.display = 'flex';
+    } else if(e.target.classList.contains('btn-delete')) {
+      const id = +e.target.getAttribute('data-id');
+      if(confirm('Are you sure you want to delete this purchase order?')) {
+        purchaseOrders = purchaseOrders.filter(o => o.id !== id);
+        renderPurchase();
+        updateDashboardCounts();
+        updateReportsCharts();
+        updateDashboardCharts();
+      }
+    }
+  });
+
+  // Profile form save
+  const profileForm = document.getElementById('profile-form');
+  profileForm.addEventListener('submit', e => {
+    e.preventDefault();
+    alert('Profile changes saved (demo, no backend)');
+  });
+
+  // Notifications panel
+  const notifIcon = document.getElementById('topbar-notifications');
+  const notifSection = document.getElementById('notifications');
+  const notifList = document.getElementById('notification-list');
+
+  function clearNotificationsBadge() {
+    notifIcon.style.color = '#999';
+    notifIcon.setAttribute('data-cleared', 'true');
+    notifIcon.removeAttribute('title');
+    notifIcon.style.position = 'relative';
+    notifIcon.style.cursor = 'default';
+    notifIcon.style.pointerEvents = 'none';
+    notifIcon.style.userSelect = 'none';
+    notifIcon.style.setProperty('--notification-count', 0);
+    notifIcon.setAttribute('aria-label', 'No new notifications');
+  }
+  function showNotificationsBadge() {
+    notifIcon.style.color = '#34495e';
+    notifIcon.removeAttribute('data-cleared');
+    notifIcon.setAttribute('title', 'Notifications');
+    notifIcon.style.cursor = 'pointer';
+    notifIcon.style.pointerEvents = 'auto';
+    notifIcon.style.userSelect = 'auto';
+    notifIcon.setAttribute('aria-label', 'Notifications');
+  }
+  notifIcon.addEventListener('click', () => {
+    showSection('notifications');
+    clearNotificationsBadge();
+  });
+
+  // Search feature
+  const searchBox = document.getElementById('search-box');
+  const searchResults = document.getElementById('search-results');
+  searchBox.addEventListener('input', () => {
+    const q = searchBox.value.trim().toLowerCase();
+    if(!q) {
+      searchResults.innerHTML = '';
+      return;
+    }
+    let resultsHtml = '';
+    // Search employees
+    const empResults = employees.filter(e => e.name.toLowerCase().includes(q) || e.role.toLowerCase().includes(q) || e.email.toLowerCase().includes(q));
+    if(empResults.length > 0) {
+      resultsHtml += '<h3>Employees</h3><ul>';
+      empResults.forEach(e => {
+        resultsHtml += `<li>${e.name} (${e.role}) - ${e.email}</li>`;
+      });
+      resultsHtml += '</ul>';
+    }
+    // Search products
+    const prodResults = products.filter(p => p.name.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q));
+    if(prodResults.length > 0) {
+      resultsHtml += '<h3>Products</h3><ul>';
+      prodResults.forEach(p => {
+        resultsHtml += `<li>${p.name} (SKU: ${p.sku}) - Qty: ${p.quantity} - $${p.price.toFixed(2)}</li>`;
+      });
+      resultsHtml += '</ul>';
+    }
+    // Search sales orders
+    const salesResults = salesOrders.filter(o => {
+      return o.customer.toLowerCase().includes(q) || o.status.toLowerCase().includes(q) || o.id.toString().includes(q);
+    });
+    if(salesResults.length > 0) {
+      resultsHtml += '<h3>Sales Orders</h3><ul>';
+      salesResults.forEach(o => {
+        resultsHtml += `<li>Order #${o.id} - ${o.customer} - $${o.total.toFixed(2)} - ${o.status}</li>`;
+      });
+      resultsHtml += '</ul>';
+    }
+    // Search purchase orders
+    const purchaseResults = purchaseOrders.filter(o => {
+      return o.supplier.toLowerCase().includes(q) || o.status.toLowerCase().includes(q) || o.id.toString().includes(q);
+    });
+    if(purchaseResults.length > 0) {
+      resultsHtml += '<h3>Purchase Orders</h3><ul>';
+      purchaseResults.forEach(o => {
+        resultsHtml += `<li>Order #${o.id} - ${o.supplier} - $${o.total.toFixed(2)} - ${o.status}</li>`;
+      });
+      resultsHtml += '</ul>';
+    }
+    if(resultsHtml) searchResults.innerHTML = resultsHtml;
+    else searchResults.innerHTML = '<p>No results found</p>';
+  });
+
+  // Settings form
+  const settingsForm = document.getElementById('settings-form');
+  settingsForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const theme = document.getElementById('setting-theme').value;
+    const notifications = document.getElementById('setting-notifications').value;
+    alert(`Settings saved:\\nTheme: ${theme}\\nNotifications: ${notifications} (demo, no backend)`);
+  });
+
+  // Chart.js charts variables
+  let chartEmployeesRole, chartSalesStatus, chartInventoryStock, chartPurchaseStatus;
+  let dashChartSalesStatus, dashChartInventoryStock;
+
+  function prepareChartsData() {
+    // Employees count by role
+    const roleCounts = {};
+    employees.forEach(emp => {
+      roleCounts[emp.role] = (roleCounts[emp.role] || 0) + 1;
+    });
+    const roles = Object.keys(roleCounts);
+    const roleData = roles.map(r => roleCounts[r]);
+
+    // Sales orders status counts
+    const salesStatusCounts = {};
+    salesOrders.forEach(order => {
+      salesStatusCounts[order.status] = (salesStatusCounts[order.status] || 0) + 1;
+    });
+    const salesStatuses = Object.keys(salesStatusCounts);
+    const salesStatusData = salesStatuses.map(s => salesStatusCounts[s]);
+
+    // Inventory stock levels by product (top 10 by quantity)
+    const sortedProducts = [...products].sort((a,b) => b.quantity - a.quantity).slice(0,10);
+    const prodNames = sortedProducts.map(p => p.name.length > 12 ? p.name.slice(0,12) + "…" : p.name);
+    const prodQtys = sortedProducts.map(p => p.quantity);
+
+    // Purchase orders status counts
+    const purchaseStatusCounts = {};
+    purchaseOrders.forEach(order => {
+      purchaseStatusCounts[order.status] = (purchaseStatusCounts[order.status] || 0) + 1;
+    });
+    const purchaseStatuses = Object.keys(purchaseStatusCounts);
+    const purchaseStatusData = purchaseStatuses.map(s => purchaseStatusCounts[s]);
+
+    return {
+      roleData, roles,
+      salesStatusData, salesStatuses,
+      prodNames, prodQtys,
+      purchaseStatusData, purchaseStatuses
+    };
+  }
+
+  function createOrUpdateCharts() {
+    const ctxEmp = document.getElementById('chartEmployeesRole').getContext('2d');
+    const ctxSales = document.getElementById('chartSalesStatus').getContext('2d');
+    const ctxInventory = document.getElementById('chartInventoryStock').getContext('2d');
+    const ctxPurchase = document.getElementById('chartPurchaseStatus').getContext('2d');
+
+    const {
+      roleData, roles,
+      salesStatusData, salesStatuses,
+      prodNames, prodQtys,
+      purchaseStatusData, purchaseStatuses
+    } = prepareChartsData();
+
+    if(chartEmployeesRole) {
+      chartEmployeesRole.data.labels = roles;
+      chartEmployeesRole.data.datasets[0].data = roleData;
+      chartEmployeesRole.update();
+    } else {
+      chartEmployeesRole = new Chart(ctxEmp, {
+        type: 'bar',
+        data: {
+          labels: roles,
+          datasets: [{
+            label: 'Employees Count',
+            data: roleData,
+            backgroundColor: '#2980b9'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, precision: 0 }
+          }
+        }
+      });
+    }
+
+    if(chartSalesStatus) {
+      chartSalesStatus.data.labels = salesStatuses;
+      chartSalesStatus.data.datasets[0].data = salesStatusData;
+      chartSalesStatus.update();
+    } else {
+      chartSalesStatus = new Chart(ctxSales, {
+        type: 'pie',
+        data: {
+          labels: salesStatuses,
+          datasets: [{
+            label: 'Sales Orders Status',
+            data: salesStatusData,
+            backgroundColor: ['#27ae60', '#f39c12', '#c0392b']
+          }]
+        },
+        options: {
+          responsive: true,
+        }
+      });
+    }
+
+    if(chartInventoryStock) {
+      chartInventoryStock.data.labels = prodNames;
+      chartInventoryStock.data.datasets[0].data = prodQtys;
+      chartInventoryStock.update();
+    } else {
+      chartInventoryStock = new Chart(ctxInventory, {
+        type: 'bar',
+        data: {
+          labels: prodNames,
+          datasets: [{
+            label: 'Stock Quantity',
+            data: prodQtys,
+            backgroundColor: '#8e44ad'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, precision: 0 }
+          }
+        }
+      });
+    }
+
+    if(chartPurchaseStatus) {
+      chartPurchaseStatus.data.labels = purchaseStatuses;
+      chartPurchaseStatus.data.datasets[0].data = purchaseStatusData;
+      chartPurchaseStatus.update();
+    } else {
+      chartPurchaseStatus = new Chart(ctxPurchase, {
+        type: 'doughnut',
+        data: {
+          labels: purchaseStatuses,
+          datasets: [{
+            label: 'Purchase Orders Status',
+            data: purchaseStatusData,
+            backgroundColor: ['#f39c12', '#27ae60', '#c0392b']
+          }]
+        },
+        options: {
+          responsive: true,
+        }
+      });
+    }
+  }
+
+  function createOrUpdateDashboardCharts() {
+    const ctxDashSales = document.getElementById('dashChartSalesStatus').getContext('2d');
+    const ctxDashInventory = document.getElementById('dashChartInventoryStock').getContext('2d');
+
+    const {
+      salesStatusData, salesStatuses,
+      prodNames, prodQtys
+    } = prepareChartsData();
+
+    if(dashChartSalesStatus) {
+      dashChartSalesStatus.data.labels = salesStatuses;
+      dashChartSalesStatus.data.datasets[0].data = salesStatusData;
+      dashChartSalesStatus.update();
+    } else {
+      dashChartSalesStatus = new Chart(ctxDashSales, {
+        type: 'pie',
+        data: {
+          labels: salesStatuses,
+          datasets: [{
+            label: 'Sales Orders Status',
+            data: salesStatusData,
+            backgroundColor: ['#27ae60', '#f39c12', '#c0392b']
+          }]
+        },
+        options: {
+          responsive: true,
+        }
+      });
+    }
+
+    if(dashChartInventory) {
+      dashChartInventory.data.labels = prodNames.slice(0, 8);
+      dashChartInventory.data.datasets[0].data = prodQtys.slice(0, 8);
+      dashChartInventory.update();
+    } else {
+      dashChartInventory = new Chart(ctxDashInventory, {
+        type: 'bar',
+        data: {
+          labels: prodNames.slice(0, 8),
+          datasets: [{
+            label: 'Stock Quantity',
+            data: prodQtys.slice(0, 8),
+            backgroundColor: '#8e44ad'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, precision: 0 }
+          }
+        }
+      });
+    }
+  }
+
+  function updateReportsCharts() {
+    if(currentView === 'reports') {
+      createOrUpdateCharts();
+    }
+  }
+
+  function updateDashboardCharts() {
+    if(currentView === 'dashboard') {
+      createOrUpdateDashboardCharts();
+    }
+  }
+
+  // Initialization
+  function init() {
+    renderEmployees();
+    renderProducts();
+    renderSales();
+    renderPurchase();
+    updateDashboardCounts();
+    // Do not create reports charts here (hidden)
+    updateDashboardCharts();
+  }
+  init();
+</script>
+</body>
+</html>
+
